@@ -22,7 +22,5 @@ def standard_tx_out_script(address, netcodes=None):
 
 
 def address_for_pay_to_script(script, netcode=None):
-    if netcode is None:
-        netcode = get_current_netcode()
     address_prefix = pay_to_script_prefix_for_netcode(netcode)
     return encoding.hash160_sec_to_bitcoin_address(encoding.hash160(script), address_prefix=address_prefix)
