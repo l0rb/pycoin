@@ -11,6 +11,7 @@ setup(
         "pycoin",
         "pycoin.blockchain",
         "pycoin.cmds",
+        "pycoin.coins",
         "pycoin.contrib",
         "pycoin.convention",
         "pycoin.ecdsa",
@@ -47,8 +48,11 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet',
+        'Topic :: Internet :: Bitcoin',
+        'Topic :: Internet :: Cryptocurrency',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],)

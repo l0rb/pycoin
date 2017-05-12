@@ -36,7 +36,7 @@ from ..serialize.bitcoin_streamer import (
     parse_struct, parse_bc_int, parse_bc_string,
     stream_struct, stream_bc_string
 )
-from ..intbytes import byte_to_int, int_to_bytes
+from ..intbytes import byte2int, indexbytes, int2byte
 
 from .exceptions import BadSpendableError, ValidationFailureError
 from .TxIn import TxIn
@@ -95,18 +95,23 @@ class Tx(object):
         txs_in = []
         txs_out = []
         version, = parse_struct("L", f)
-        v = ord(f.read(1))
-        is_segwit = allow_segwit and (v == 0)
+        v1 = ord(f.read(1))
+        is_segwit = allow_segwit and (v1 == 0)
+        v2 = None
         if is_segwit:
             flag = f.read(1)
-            if flag != b'\1':
+            if flag == b'\0':
                 raise ValueError("bad flag in segwit")
-            v = None
-        count = parse_bc_int(f, v=v)
+            if flag == b'\1':
+                v1 = None
+            else:
+                is_segwit = False
+                v2 = ord(flag)
+        count = parse_bc_int(f, v=v1)
         txs_in = []
         for i in range(count):
             txs_in.append(class_.TxIn.parse(f))
-        count = parse_bc_int(f)
+        count = parse_bc_int(f, v=v2)
         txs_out = []
         for i in range(count):
             txs_out.append(class_.TxOut.parse(f))
@@ -244,7 +249,7 @@ class Tx(object):
 
         # In case concatenating two scripts ends up with two codeseparators,
         # or an extra one at the end, this prevents all those possible incompatibilities.
-        tx_out_script = tools.delete_subscript(tx_out_script, int_to_bytes(opcodes.OP_CODESEPARATOR))
+        tx_out_script = tools.delete_subscript(tx_out_script, int2byte(opcodes.OP_CODESEPARATOR))
 
         # blank out other inputs' signatures
         txs_in = [self._tx_in_for_idx(i, tx_in, tx_out_script, unsigned_txs_out_idx)
@@ -367,8 +372,8 @@ class Tx(object):
             hash_type = self.SIGHASH_ALL
         tx_in = self.txs_in[tx_in_idx]
 
-        is_p2h = (len(tx_out_script) == 23 and byte_to_int(tx_out_script[0]) == opcodes.OP_HASH160 and
-                  byte_to_int(tx_out_script[-1]) == opcodes.OP_EQUAL)
+        is_p2h = (len(tx_out_script) == 23 and byte2int(tx_out_script) == opcodes.OP_HASH160 and
+                  indexbytes(tx_out_script, -1) == opcodes.OP_EQUAL)
         if is_p2h:
             hash160 = ScriptPayToScript.from_script(tx_out_script).hash160
             p2sh_lookup = kwargs.get("p2sh_lookup")

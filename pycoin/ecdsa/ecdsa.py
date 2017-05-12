@@ -28,6 +28,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 Portions written in 2005 by Peter Pearson and placed in the public domain.
 """
 
+import hashlib
+import hmac
+
+from . import intstream
 from . import ellipticcurve, numbertheory
 
 from .rfc6979 import deterministic_generate_k
@@ -111,7 +115,7 @@ def possible_public_pairs_for_signature(generator, value, signature):
 
     r, s = signature
 
-    possible_points = set()
+    possible_points = []
 
     # recid = nV - 27
     # 1.1
@@ -130,5 +134,5 @@ def possible_public_pairs_for_signature(generator, value, signature):
         # check that Q is the public key
         if verify(generator, public_pair, value, signature):
             # check that we get the original signing address
-            possible_points.add(public_pair)
+            possible_points.append(public_pair)
     return possible_points
